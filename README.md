@@ -1,0 +1,1 @@
+The project was done for Blockchain Practice course by Madina Salen and Temirlan Kabdikarim
