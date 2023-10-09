@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rock-Paper-Scissors</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/web3/1.5.2/web3.min.js"></script>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #2266dd;
+        }
+
+        div {
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            background-color: #ffffff;
+            padding: 100px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        label {
+            font-size: 18px;
+            margin-right: 10px;
+        }
+
+        select {
+            padding: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            background-color: #2266dd;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        h2 {
+            margin-top: 20px;
+            color: #2266dd;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Rock-Paper-Scissors</h1>
+    <div style="display: flex; align-items: center">
+        <label for="move">Select your move:</label>
+        <select id="move" name="move">
+            <option value="1">Rock</option>
+            <option value="2">Paper</option>
+            <option value="3">Scissors</option>
+        </select>
+        <br><br>
+        <button onclick="play()">Play</button>
+        
+        <h2>Game History</h2>
+        <ul id="gameHistory"></ul>
+    </div>
+    <script>
+        const contractAddress = "0x5B38Da6a701c568545dCfcB03FcB875f56beddC4";
+        const contractABI = [ 0x5B38Da6a701c568545dCfcB03FcB875f56beddC4 ];
+        const web3 = new Web3(window.ethereum);
+
+        async function play() {
+            const selectedMove = document.getElementById("move").value;
+            const accounts = await web3.eth.getAccounts();
+            const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+            try {
+                await contract.methods.play(selectedMove).send({ from: accounts[0], value: web3.utils.toWei("0.0001", "ether") });
+                alert("Game played successfully!");
+                updateGameHistory();
+            } catch (error) {
+                console.error(error);
+                alert("An error occurred while playing the game.");
+            }
+        }
+
+        async function updateGameHistory() {
+            const contract = new web3.eth.Contract(contractABI, contractAddress);
+            const gameCount = await contract.methods.games.length().call();
+
+            const gameHistoryElement = document.getElementById("gameHistory");
+            gameHistoryElement.innerHTML = "";
+
+            for (let i = 1; i <= gameCount; i++) {
+                const game = await contract.methods.games(i - 1).call();
+                const result = game.won ? "You won" : "You lost";
+                gameHistoryElement.innerHTML += `<li>Game ${i}: ${result} (Your move: ${game.move1}, House move: ${game.move2})</li>`;
+            }
+        }
+
+        // Check if MetaMask is installed and available
+        if (typeof window.ethereum !== 'undefined') {
+            // Request account access from the user
+            ethereum
+                .request({ method: 'eth_requestAccounts' })
+                .then((accounts) => {
+                    // You can now use 'accounts' to interact with the user's wallet
+                    console.log('Connected MetaMask account:', accounts[0]);
+                })
+                .catch((error) => {
+                    console.error('Error connecting MetaMask:', error);
+                });
+        } else {
+            alert('MetaMask is not installed or available. Please install MetaMask.');
+        }
+
+
+
+        window.addEventListener("load", init);
+    </script>
+</body>
+</html>
